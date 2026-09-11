@@ -176,10 +176,17 @@ D'où, depuis la 1.0.3, le `legacy_printer_model: [Jubilee Trident]` porté par 
 voisin. En pratique :
 
 1. dans PrusaSlicer **2.9**, avec le profil Jubilee, enregistrez un projet (`.3mf`) ;
-2. ouvrez ce `.3mf` dans la **3.0** ;
+2. dans la **3.0**, ouvrez-le par **File → Open Project** ;
 3. la Jubilee devient l'imprimante sélectionnée, avec ses outils, sa surface et sa
    vignette ; les profils d'impression et de filament de cette source deviennent
    sélectionnables.
+
+Il faut bien **ouvrir le projet**, pas importer la géométrie : seul
+`load_file_as_project` transmet le bundle des vendeurs à `load_legacy_project`, l'import
+d'objet appelle `load_from_project(path, std::nullopt)` et saute toute la résolution de
+l'imprimante. Et il faut un `.3mf` : `extract_legacy_preset_metadata` n'est atteignable
+que depuis `_3MF_Importer` (l'entrée `Metadata/Slic3r_PE.config` de l'archive), donc ni
+un `.ini` de configuration ni un G-code ne conviennent.
 
 Deux limites : la configuration ainsi obtenue n'est pas persistée au redémarrage
 (`save_bundle_configs` est également désactivé), et un seul `printer_config` peut
