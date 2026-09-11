@@ -61,7 +61,19 @@ def idx_versions() -> list[str]:
     return out
 
 
+def run_checks() -> None:
+    """Invariants du chargeur PrusaSlicer, si pyyaml est disponible."""
+    try:
+        import check_vendor
+    except ImportError:
+        print("pyyaml absent : controle des invariants ignore "
+              "(pip install pyyaml pour l'activer).")
+        return
+    check_vendor.main()
+
+
 def main() -> None:
+    run_checks()
     version = vendor_version()
     versions = idx_versions()
     if version not in versions:

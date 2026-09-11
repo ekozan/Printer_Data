@@ -85,7 +85,7 @@ inherits:
 - '*JT base*'
 - '*JT geometrie*'
 variants:
-- condition: printer.model == "JUBILEE1T"
+- condition: printer.tool_count == 1
   name: Jubilee Trident - 1 outil
   id: ekozan-printer-jubilee-1t-v
   values:
@@ -103,7 +103,7 @@ inherits:
 - '*JT base*'
 - '*JT geometrie*'
 variants:
-- condition: printer.model == "JUBILEE5T"
+- condition: printer.tool_count > 1
   name: Jubilee Trident - 5 outils
   id: ekozan-printer-jubilee-5t-v
   values:

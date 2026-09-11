@@ -3,52 +3,39 @@
 #
 # Un document par bloc, separes par ---
 #   vendor         : identite + declaration des "features"
-#   printer        : un modele d'imprimante (capacites + visuel)
-#   tool           : une tete / un diametre de buse selectionnable
+#   printer        : le modele d'imprimante (capacites + visuel)
+#   tool           : une tete selectionnable ; 'condition' decide si elle est
+#                    proposee pour une imprimante donnee
 #   sheet          : une surface d'impression
 #   printer_config : ce que l'utilisateur choisit reellement
-#                    (imprimante + nombre d'outils + outils + plateau)
+#
+# Invariant impose par HwConfigEvaluator::create_printer_config :
+#   len(printer_config.tools) doit valoir 1 ou tool_count.
+# Une seule entree suffit : elle sert de tete par defaut et remplit les autres
+# emplacements. Le choix du diametre de buse vient des documents 'tool'.
 
 kind: vendor
 id: Ekozan
 name: Ekozan - Jubilee
-version: 1.0.0
+version: 1.0.1
 features:
-  printer:
-    multi_extruder:
-      default: false
-      user_editable: false
+  printer: {}
   tool:
     nozzle_diameter:
       default: 0.4
 
 ---
-# 1 outil : le seul outil monte aujourd'hui ([tool 0] dans tools.cfg)
+# Un seul modele : le nombre d'outils est porte par les printer_config.
+# Le nom affiche est construit par suggest_name a partir de ce 'name',
+# suffixe du nombre d'outils et de la buse -> "Jubilee Trident 5T 0.4".
 kind: printer
 technology: FFF
-id: jubilee1t
-name: Jubilee Trident 1T
+id: jubilee
+name: Jubilee Trident
 model:
   base_model: JUBILEE
-  model: JUBILEE1T
+  model: JUBILEE
 tool_count: 1
-visual:
-  bed_texture: jubilee_bed.png
-  thumbnail: jubilee_thumbnail.png
-
----
-# 5 outils : prêt pour quand T1..T4 seront montes
-kind: printer
-technology: FFF
-id: jubilee5t
-name: Jubilee Trident 5T
-model:
-  base_model: JUBILEE
-  model: JUBILEE5T
-tool_count: 5
-features:
-  multi_extruder:
-    default: true
 visual:
   bed_texture: jubilee_bed.png
   thumbnail: jubilee_thumbnail.png
@@ -58,6 +45,7 @@ kind: tool
 technology: FFF
 id: '0.4'
 name: '0.4'
+condition: printer.base_model == "JUBILEE"
 features:
   nozzle_diameter:
     default: 0.4
@@ -67,6 +55,7 @@ kind: tool
 technology: FFF
 id: '0.6'
 name: '0.6'
+condition: printer.base_model == "JUBILEE"
 features:
   nozzle_diameter:
     default: 0.6
@@ -78,23 +67,23 @@ name: PEI texture
 type: pei_textured
 
 ---
+# Le seul outil monte aujourd'hui ([tool 0] dans tools.cfg)
 kind: printer_config
 id: jubilee-1t
-name: Jubilee Trident - 1 outil
-printer: jubilee1t
+name: Jubilee Trident
+printer: jubilee
 tool_count: 1
 tools:
 - tool: '0.4'
-- tool: '0.6'
 sheet: pei_textured
 
 ---
+# Pret pour quand T1..T4 seront montes
 kind: printer_config
 id: jubilee-5t
-name: Jubilee Trident - 5 outils
-printer: jubilee5t
+name: Jubilee Trident
+printer: jubilee
 tool_count: 5
 tools:
 - tool: '0.4'
-- tool: '0.6'
 sheet: pei_textured

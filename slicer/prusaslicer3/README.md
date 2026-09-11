@@ -29,6 +29,7 @@ manifeste. Une source séparée cohabite proprement.
 ```
 prusaslicer3/
 ├── build_source.py      assemble le zip (bibliothèque standard uniquement)
+├── check_vendor.py      rejoue les invariants du chargeur (pyyaml)
 ├── make_thumbnail.py    régénère la vignette (Pillow)
 ├── Ekozan.idx           versions publiées + min_slic3r_version
 └── vendor/
@@ -45,10 +46,21 @@ prusaslicer3/
 | Document | Rôle |
 |---|---|
 | `vendor` | identité + déclaration des *features* |
-| `printer` ×2 | `JUBILEE1T` et `JUBILEE5T`, même `base_model: JUBILEE` |
-| `tool` ×2 | buses 0.4 et 0.6 (`nozzle_diameter`) |
+| `printer` | un seul modèle, `Jubilee Trident` |
+| `tool` ×2 | buses 0.4 et 0.6, offertes via leur `condition` |
 | `sheet` | surface d'impression |
-| `printer_config` ×2 | ce que l'utilisateur choisit : imprimante + nombre d'outils + plateau |
+| `printer_config` ×2 | ce que l'utilisateur choisit : 1 outil ou 5 outils |
+
+> **Piège** : `HwConfigEvaluator::create_printer_config` impose
+> `len(tools) == tool_count` **ou** `len(tools) == 1`. La liste `tools` d'un
+> `printer_config` n'est pas le catalogue des buses disponibles — c'est la tête par
+> défaut, répliquée sur tous les emplacements. Le choix du diamètre vient des documents
+> `tool` et de leur `condition`. Y mettre deux entrées pour `tool_count: 1` fait
+> silencieusement disparaître l'imprimante de la liste. `check_vendor.py` vérifie ça.
+
+Le nom affiché n'est pas celui du `printer_config` : `suggest_name` le reconstruit à
+partir du `name` du modèle, du nombre d'outils et de la buse — d'où
+« Jubilee Trident 0.4 » et « Jubilee Trident 5T 0.4 ».
 
 Les `preset-*.yaml` portent les **valeurs**, avec des `variants` conditionnels
 (`condition: tool.nozzle_diameter == 0.4`) au lieu de dupliquer des profils entiers.
@@ -75,6 +87,12 @@ Klipper**, `config/print_macros.cfg` ne dépend pas du slicer.
    de `Ekozan.idx` — `build_source.py` refuse de construire si les deux divergent.
 3. `python3 build_source.py`, puis rechargez la source dans PrusaSlicer.
 
+`build_source.py` lance `check_vendor.py` au passage (si pyyaml est installé). Celui-ci
+rejoue les invariants du chargeur : références `printer` / `tool` / `sheet` résolues,
+cardinalité de `tools`, cohérence des technologies, cibles d'`inherits` existantes,
+`default_print` / `default_material` pointant sur des presets réellement nommés, et
+assets présents. Il affiche aussi le nom tel qu'il apparaîtra dans la liste.
+
 Le script recalcule à chaque build le SHA-256 de chaque fichier dans
 `Ekozan/1.0.0/manifest.json` ; c'est obligatoire, l'updater compare ces empreintes.
 
@@ -88,7 +106,8 @@ Vérifié contre les sources de 3.0.0-alpha11 :
   eux, n'y passent pas entièrement ;
 - **les 166 options utilisées existent toutes** dans le `PrintConfig` de la 3.0
   (c'est ce contrôle qui a fait tomber `wipe_tower_x/y` et `filament_retract_*`) ;
-- `gcode_flavor: klipper` toujours présent.
+- `gcode_flavor: klipper` toujours présent ;
+- invariants de `create_printer_config` rejoués par `check_vendor.py`.
 
 Non vérifié, faute de pouvoir lancer l'alpha ici :
 
