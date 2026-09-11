@@ -80,6 +80,27 @@ Inchangé : les noms d'options (`bed_shape`, `start_gcode`, `gcode_flavor: klipp
 donc les valeurs se transposent une par une. Inchangé aussi : **rien à modifier côté
 Klipper**, `config/print_macros.cfg` ne dépend pas du slicer.
 
+## Deux pièges de la 3.0 qui ne font aucun bruit
+
+`BundleLoader::load` **attrape** les exceptions de parsing, les journalise et passe au
+vendeur suivant. Une erreur dans un YAML ne provoque donc ni crash ni message : le
+vendeur disparaît simplement de la liste des imprimantes. Deux causes rencontrées :
+
+**1. YAML réinterprète les points.** `extruder_offset: [0x0]` non quoté est relu comme
+l'**entier 0**, et `0x180` comme **384**. Prusa quote systématiquement ces valeurs —
+et, dans `bed_shape`, quote exactement `'0x0'` et `'0x180'` en laissant `180x0` nu.
+Écrivez toujours :
+
+```yaml
+extruder_offset:
+- '0x0'
+```
+
+**2. Des options booléennes sont devenues des énumérations.** `support_material` vaut
+désormais `none` / `enforcers_only` / `everywhere`, plus `0` / `1`.
+
+`check_vendor.py` contrôle les deux.
+
 ## Modifier puis reconstruire
 
 1. Éditez les YAML dans `vendor/`.

@@ -72,10 +72,10 @@ kind: printer
 id: '*JT geometrie*'
 values:
   bed_shape:
-  - 50x39
-  - 290x39
-  - 290x214
-  - 50x214
+  - '50x39'
+  - '290x39'
+  - '290x214'
+  - '50x214'
   max_print_height: 220
 
 ---
@@ -92,7 +92,7 @@ variants:
     # Les offsets d'outil sont appliques par KTCC (SET_GCODE_OFFSET au pickup).
     # Les renseigner ici les appliquerait deux fois.
     extruder_offset:
-    - 0x0
+    - '0x0'
     start_gcode: |
       PRINT_START BED={first_layer_bed_temperature[initial_extruder]} TOOL={initial_extruder} T0={first_layer_temperature[initial_extruder]} LAYERS={total_layer_count} MESH=1
 
@@ -108,11 +108,11 @@ variants:
   id: ekozan-printer-jubilee-5t-v
   values:
     extruder_offset:
-    - 0x0
-    - 0x0
-    - 0x0
-    - 0x0
-    - 0x0
+    - '0x0'
+    - '0x0'
+    - '0x0'
+    - '0x0'
+    - '0x0'
     # Seuls les outils reellement utilises par le G-code sont prechauffes.
     start_gcode: |
       PRINT_START BED={first_layer_bed_temperature[initial_extruder]} TOOL={initial_extruder} LAYERS={total_layer_count} MESH=1{if is_extruder_used[0]} T0={first_layer_temperature[0]}{endif}{if is_extruder_used[1]} T1={first_layer_temperature[1]}{endif}{if is_extruder_used[2]} T2={first_layer_temperature[2]}{endif}{if is_extruder_used[3]} T3={first_layer_temperature[3]}{endif}{if is_extruder_used[4]} T4={first_layer_temperature[4]}{endif}

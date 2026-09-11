@@ -135,6 +135,9 @@ def main() -> None:
                 preset_names.setdefault(kind, set()).add(name)
 
     for fname, d in preset_docs:
+        check_value_types(fname, d)
+
+    for fname, d in preset_docs:
         for parent in d.get("inherits", []) or []:
             if parent not in preset_ids:
                 err(f"{fname} : '{d.get('id')}' herite de '{parent}', qui n'existe pas.")
@@ -163,6 +166,61 @@ def main() -> None:
             print(f"  - {e}", file=sys.stderr)
         sys.exit(1)
     print("  invariants du chargeur : OK")
+
+
+
+# --- Pieges de typage YAML -------------------------------------------------
+# Options dont la valeur doit rester une CHAINE : YAML relit "0x0" comme
+# l'entier 0 et "0x180" comme 384. Prusa quote systematiquement ces valeurs
+# (extruder_offset: ['0x0']). Un entier la ou le chargeur attend un point fait
+# echouer tout le bundle, silencieusement : BundleLoader attrape l'exception,
+# la journalise, et aucune imprimante n'apparait.
+POINT_OPTIONS = {"bed_shape", "extruder_offset"}
+
+# Options devenues des enumerations en 3.0 alors qu'elles etaient booleennes
+# ou numeriques en 2.9. Valeurs relevees dans le PrintConfig de l'alpha11.
+ENUM_OPTIONS = {
+    "support_material": {"none", "enforcers_only", "everywhere"},
+    "arc_fitting": {"disabled", "emit_center"},
+    "brim_type": {"no_brim", "outer_only", "inner_only", "outer_and_inner"},
+    "gcode_label_objects": {"disabled", "octoprint", "firmware"},
+    "machine_limits_usage": {"emit_to_gcode", "time_estimate_only", "ignore"},
+    "perimeter_generator": {"classic", "arachne"},
+    "seam_position": {"random", "nearest", "aligned", "rear"},
+    "support_material_style": {"grid", "snug", "organic"},
+    "gcode_flavor": {"klipper", "marlin", "marlin2", "reprap", "reprapfirmware",
+                     "repetier", "teacup", "makerware", "sailfish", "mach3",
+                     "machinekit", "smoothie"},
+}
+
+
+def check_value_types(fname: str, doc) -> None:
+    """Valeurs mal typees apres relecture YAML."""
+    def visit(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k == "values" and isinstance(v, dict):
+                    for opt, val in v.items():
+                        items = val if isinstance(val, list) else [val]
+                        if opt in POINT_OPTIONS:
+                            for it in items:
+                                if not isinstance(it, str):
+                                    err(f"{fname} : {opt} = {it!r} ({type(it).__name__}). "
+                                        f"YAML a reinterprete la valeur ; entourez chaque "
+                                        f"point de quotes simples, par exemple '0x0'.")
+                        if opt in ENUM_OPTIONS and isinstance(val, (int, float, bool)):
+                            err(f"{fname} : {opt} = {val!r} est numerique alors que "
+                                f"l'option est une enumeration en 3.0. Valeurs attendues : "
+                                f"{', '.join(sorted(ENUM_OPTIONS[opt]))}.")
+                        elif opt in ENUM_OPTIONS and val not in ENUM_OPTIONS[opt]:
+                            err(f"{fname} : {opt} = {val!r} hors des valeurs permises "
+                                f"({', '.join(sorted(ENUM_OPTIONS[opt]))}).")
+                else:
+                    visit(v)
+        elif isinstance(node, list):
+            for v in node:
+                visit(v)
+    visit(doc)
 
 
 def collect_names(node) -> list[str]:
