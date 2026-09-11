@@ -122,6 +122,21 @@ Le bundle installe :
 | `single_extruder_multi_material` | `0` | un toolchanger = une hotend par outil, pas un MMU |
 | `gcode_label_objects` | `octoprint` | marqueurs `; printing object` → annulation d'objet dans Mainsail (voir §5) |
 
+### Texture du plateau
+
+`bed_texture.png` (1920 × 1400 px, soit exactement 240 × 175 mm) se charge dans
+`Réglages imprimante` → `Général` → `Forme du plateau` → `Définir…` →
+`Texture personnalisée` → `Charger…`. PrusaSlicer enregistre un **chemin absolu** dans
+le profil : posez le fichier à un endroit stable avant de le charger.
+
+Elle reprend les coordonnées machine réelles — graduations tous les 10 / 50 mm,
+coordonnées des 4 coins (celles du test du §3), ligne d'amorce de `PRINT_START` en
+Y 41, emprise de la tour de purge, et rappel du côté des docks.
+
+`make_bed_texture.py` la régénère : si vous changez `bed_shape`, la ligne d'amorce dans
+`_PRINT_VARS` ou la position de la tour, ajustez les constantes en tête du script et
+relancez `python3 make_bed_texture.py` (nécessite Pillow).
+
 ---
 
 ## 3. ⚠️ Zone d'impression — à vérifier avant la première impression
@@ -187,7 +202,7 @@ demandé par le G-code mais absent de la config.
 ### Tour de purge
 
 `wipe_tower = 1` est actif dans les profils d'impression
-(`x=225, y=45, largeur 60`) mais n'a d'effet qu'avec plusieurs extrudeurs. KTCC fait
+(`x=222, y=140, largeur 60`, à l'arrière-droit pour ne pas croiser la ligne d'amorce en Y41) mais n'a d'effet qu'avec plusieurs extrudeurs. KTCC fait
 déjà une pré-extrusion de la zone de fusion au pickup (`meltzonelength: 18`) ; la tour
 complète le nettoyage. Si vous avez un bac de purge, passez `wipe_tower` à 0.
 
