@@ -1,4 +1,5 @@
 min_slic3r_version = 3.0.0-alpha0
+1.0.3 min/max_layer_height passent dans le profil d'impression ; legacy_printer_model pour l'import des projets 2.x.
 1.0.2 Correction du typage YAML : extruder_offset quote, support_material passe en enum.
 1.0.1 Un seul outil par printer_config, modele unique, branchement sur tool_count.
 1.0.0 Version initiale : Jubilee Trident (Klipper/KTCC), 1 et 5 outils.

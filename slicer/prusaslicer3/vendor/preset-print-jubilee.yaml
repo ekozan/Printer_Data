@@ -5,6 +5,11 @@ kind: print
 id: '*JT commun*'
 values:
   default_material: Generic PLA @JT
+  # Bornes de la hauteur de couche variable. Ce sont des options 'print' en
+  # 3.0 (elles etaient dans le profil imprimante en 2.9) ; la valeur haute
+  # suit le diametre de buse, d'ou la surcharge dans la variante 0.6.
+  min_layer_height: 0.05
+  max_layer_height: 0.32
   arc_fitting: disabled
   gcode_comments: 0
   gcode_label_objects: octoprint
@@ -177,3 +182,4 @@ variants:
     first_layer_extrusion_width: 0.68
     perimeter_speed: 110
     infill_speed: 180
+    max_layer_height: 0.48

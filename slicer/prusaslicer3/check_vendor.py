@@ -13,6 +13,7 @@ Les regles viennent de :
   Domain::Preset::suggest_name
   Biz::Preset::IO::PresetLoader / HwConfigLoader
 """
+import json
 import re
 import sys
 from pathlib import Path
@@ -136,6 +137,7 @@ def main() -> None:
 
     for fname, d in preset_docs:
         check_value_types(fname, d)
+        check_key_ownership(fname, d)
 
     for fname, d in preset_docs:
         for parent in d.get("inherits", []) or []:
@@ -215,6 +217,75 @@ def check_value_types(fname: str, doc) -> None:
                         elif opt in ENUM_OPTIONS and val not in ENUM_OPTIONS[opt]:
                             err(f"{fname} : {opt} = {val!r} hors des valeurs permises "
                                 f"({', '.join(sorted(ENUM_OPTIONS[opt]))}).")
+                else:
+                    visit(v)
+        elif isinstance(node, list):
+            for v in node:
+                visit(v)
+    visit(doc)
+
+
+# --- Rangement des options par 'kind' --------------------------------------
+# PresetEvaluator valide chaque cle contre la classe de reglages qui correspond
+# au 'kind' du preset (PresetEvaluator.cpp:312). Une cle rangee ailleurs est
+# rejetee sans que le bundle echoue : elle disparait simplement, et le reglage
+# ne s'applique pas. Le log ne dit rien d'autre que
+#   [error] Invalid key <option> for Slic3r::Domain::<X>Settings
+#
+# Table produite par extract_config_keys.py depuis ConfigDefsFDM.cpp /
+# ConfigCommon.cpp. Ce n'est pas Legacy/PrintConfig.cpp qui fait foi : celui-la
+# ne sert qu'a relire les profils 2.x.
+KIND_TO_BOX = {
+    "printer": "Printer",
+    "print": "Print",
+    "tool_print": "Tool",
+    "material": "Filament",
+    "filament": "Filament",
+}
+
+_KEY_TABLE: dict | None = None
+
+
+def key_table() -> dict:
+    global _KEY_TABLE
+    if _KEY_TABLE is None:
+        table = HERE / "config_keys.json"
+        _KEY_TABLE = json.loads(table.read_text("utf-8")) if table.exists() else {}
+        if not _KEY_TABLE:
+            notes.append("    config_keys.json absent : rangement des options non verifie")
+    return _KEY_TABLE
+
+
+def check_key_ownership(fname: str, doc) -> None:
+    table = key_table()
+    if not table:
+        return
+    box = KIND_TO_BOX.get(doc.get("kind"))
+    if box is None:
+        err(f"{fname} : kind '{doc.get('kind')}' inconnu "
+            f"(attendu : {', '.join(sorted(KIND_TO_BOX))}).")
+        return
+    allowed = {k for k, v in table.items()
+               if box in v["location"] or box in v["overrides_in"]}
+
+    def visit(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k == "values" and isinstance(v, dict):
+                    for opt in v:
+                        if opt in allowed:
+                            continue
+                        if opt not in table:
+                            err(f"{fname} : '{doc.get('id', '?')}' declare l'option "
+                                f"'{opt}', inconnue de PrusaSlicer 3.0.")
+                        else:
+                            homes = table[opt]["location"] + table[opt]["overrides_in"]
+                            kinds = sorted({k2 for k2, b in KIND_TO_BOX.items() if b in homes})
+                            err(f"{fname} : '{doc.get('id', '?')}' est un preset "
+                                f"'{doc.get('kind')}' mais '{opt}' appartient a "
+                                f"{', '.join(homes)}. Deplacez-la dans un preset "
+                                f"{' ou '.join(kinds) or '(aucun kind de preset)'} : "
+                                f"ici elle est ignoree en silence.")
                 else:
                     visit(v)
         elif isinstance(node, list):

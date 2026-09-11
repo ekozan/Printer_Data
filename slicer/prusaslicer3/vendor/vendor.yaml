@@ -17,7 +17,7 @@
 kind: vendor
 id: Ekozan
 name: Ekozan - Jubilee
-version: 1.0.2
+version: 1.0.3
 features:
   printer: {}
   tool:
@@ -72,6 +72,15 @@ kind: printer_config
 id: jubilee-1t
 name: Jubilee Trident
 printer: jubilee
+# Sert de pont depuis le bundle 2.9 : a l'ouverture d'un 3MF PrusaSlicer 2.x,
+# load_legacy_preset_metadata cherche ce nom dans TOUS les vendeurs installes
+# (printer_model = Jubilee Trident dans ../prusaslicer/Jubilee_Trident_bundle.ini)
+# et construit la configuration materielle correspondante. C'est aujourd'hui le
+# seul chemin par lequel un vendeur tiers arrive jusqu'a l'application ; voir
+# README.md, section « alpha11 ». Un seul printer_config peut porter ce nom :
+# le premier trouve gagne, on le reserve donc a la configuration 1 outil.
+legacy_printer_model:
+- Jubilee Trident
 tool_count: 1
 tools:
 - tool: '0.4'
