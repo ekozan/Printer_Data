@@ -23,8 +23,7 @@ réelle de cette imprimante (`config/printer.cfg`, `config/axis.cfg`,
 >
 > - **elle ne contient que les profils Prusa.** Le portage des autres a été repoussé
 >   (« The alpha only contains profiles for Prusa printers. Porting of the others was
->   postponed for practical reasons »). Il n'y a donc pas encore de chemin fiable pour
->   déclarer une imprimante custom ;
+>   postponed for practical reasons ») ;
 > - **les configurations custom ne sont pas gérées** : « Loading projects using custom
 >   printers or projects from other slicers is not fully supported yet. You may
 >   encounter errors in these cases. »
@@ -264,10 +263,39 @@ l'émission de `M201`/`M203` que Klipper refuse).
 ### Et la 3.0 ?
 
 État à ce jour : **alpha publique, profils Prusa uniquement**, chargement de
-configurations custom « not fully supported yet ». Ce bundle **n'est pas importable**
-tel quel, et il ne sert à rien d'en produire une variante 3.0 maintenant : le format
-des profils bouge encore d'une alpha à l'autre (c'est la raison même invoquée par Prusa
-pour avoir repoussé le portage des profils tiers).
+configurations custom « not fully supported yet ». Ce bundle `.ini` **n'est pas
+importable** tel quel : la 3.0 a remplacé les presets `.ini` par du **YAML** et les
+« vendor bundles » par des **sources de presets** (dépôts).
+
+Il existe bien un chemin pour une imprimante custom, mais ce n'est pas « ajouter la
+sienne au zip de Prusa » : l'updater accepte une **source locale**, c'est-à-dire un zip
+à vous (`add_local_repository()` dans le code ; section « Local sources » dans
+`Preset Sources & Updates`). Structure du zip, relevée dans les sources de
+l'alpha11 :
+
+```
+ma_source.zip
+├── manifest.json            # { "name", "id", "url" } obligatoires (+ "index_url")
+├── vendor_indices.zip       # contient <Vendeur>.idx  (min_slic3r_version + versions)
+└── <Vendeur>/<version>/
+    ├── manifest.json        # [ { "filename", "filehash" (SHA-256) }, ... ]
+    ├── vendor.yaml          # kind: vendor  + features
+    ├── preset-printer-*.yaml, preset-tool-*.yaml,
+    │   preset-print-*.yaml,   preset-filament-*.yaml
+    └── assets/              # bed_texture, bed_model, thumbnail
+```
+
+Les presets sont des documents YAML typés par `kind:` (`vendor`, `printer`,
+`printer_config`, `tool`, `sheet`, …) ; les noms d'options restent ceux qu'on connaît
+(`bed_shape`, `start_gcode`, `nozzle_diameter`…), donc les valeurs du §2 se
+reportent, mais la structure autour est entièrement nouvelle. Le hash SHA-256 de
+chaque fichier doit être recalculé dans le manifeste de version à chaque
+modification.
+
+Ce n'est pas une piste à suivre tout de suite : le format bouge d'une alpha à l'autre —
+c'est exactement la raison invoquée par Prusa pour avoir repoussé le portage des
+profils tiers. Documentation officielle pointée par l'application :
+<https://help.prusa3d.com/slicer-profiles/3>
 
 Ce qui est acquis et qui ne changera pas :
 
