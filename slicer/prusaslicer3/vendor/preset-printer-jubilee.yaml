@@ -1,0 +1,118 @@
+# Reglages imprimante. Schema : specs/presets/preset-schema.json
+# Les noms d'options sont ceux de PrusaSlicer ; seule l'ossature change par
+# rapport au .ini 2.9 (voir ../prusaslicer/Jubilee_Trident_bundle.ini).
+
+kind: printer
+id: '*JT base*'
+values:
+  printer_technology: FFF
+  gcode_flavor: klipper
+  # PRINT_START gere toutes les temperatures, puis KTCC prend le relais
+  # (actif / standby). PrusaSlicer ne doit pas emettre de M104/M140 en plus.
+  autoemit_temperature_commands: 0
+  machine_limits_usage: time_estimate_only
+  use_relative_e_distances: 1
+  use_firmware_retraction: 0
+  use_volumetric_e: 0
+  variable_layer_height: 1
+  min_layer_height: 0.05
+  max_layer_height: 0.32
+  single_extruder_multi_material: 0
+  z_offset: 0
+  binary_gcode: 0
+  remaining_times: 1
+  silent_mode: 0
+  thumbnails: 32x32/PNG, 400x300/PNG
+  # Limites machine reprises de [printer] et [stepper_*] de printer.cfg.
+  # Deux valeurs par axe : [normal, mode silencieux].
+  machine_max_feedrate_x: [800.0, 800.0]
+  machine_max_feedrate_y: [800.0, 800.0]
+  machine_max_feedrate_z: [5.0, 5.0]
+  machine_max_feedrate_e: [120.0, 120.0]
+  machine_max_acceleration_x: [10000.0, 10000.0]
+  machine_max_acceleration_y: [10000.0, 10000.0]
+  machine_max_acceleration_z: [200.0, 200.0]
+  machine_max_acceleration_e: [5000.0, 5000.0]
+  machine_max_acceleration_extruding: [10000.0, 10000.0]
+  machine_max_acceleration_retracting: [10000.0, 10000.0]
+  machine_max_acceleration_travel: [10000.0, 10000.0]
+  machine_max_jerk_x: [5.0, 5.0]
+  machine_max_jerk_y: [5.0, 5.0]
+  machine_max_jerk_z: [0.4, 0.4]
+  machine_max_jerk_e: [2.5, 2.5]
+  machine_min_extruding_rate: [0.0, 0.0]
+  machine_min_travel_rate: [0.0, 0.0]
+  before_layer_gcode: |
+    ;BEFORE_LAYER_CHANGE
+    ;Z:[layer_z]
+  layer_gcode: |
+    ;AFTER_LAYER_CHANGE
+    ;Z:[layer_z]
+    SET_PRINT_STATS_INFO CURRENT_LAYER={layer_num + 1}
+  end_gcode: PRINT_END
+  # T0/T1... sont deja des macros KTCC : rien a ajouter au changement d'outil.
+  toolchange_gcode: ''
+  between_objects_gcode: ''
+  pause_print_gcode: PAUSE
+  color_change_gcode: PAUSE
+variants:
+- condition: tool.nozzle_diameter == 0.4
+  id: ekozan-jt-default-04
+  values:
+    default_print: 0.20mm QUALITY @JT
+- condition: tool.nozzle_diameter == 0.6
+  id: ekozan-jt-default-06
+  values:
+    default_print: 0.30mm DRAFT @JT
+
+---
+# Geometrie commune : zone d'impression en coordonnees G-code, offset outil
+# applique par KTCC (voir ../prusaslicer/README.md section 3).
+kind: printer
+id: '*JT geometrie*'
+values:
+  bed_shape:
+  - 50x39
+  - 290x39
+  - 290x214
+  - 50x214
+  max_print_height: 220
+
+---
+kind: printer
+id: ekozan-printer-jubilee-1t
+inherits:
+- '*JT base*'
+- '*JT geometrie*'
+variants:
+- condition: printer.model == "JUBILEE1T"
+  name: Jubilee Trident - 1 outil
+  id: ekozan-printer-jubilee-1t-v
+  values:
+    # Les offsets d'outil sont appliques par KTCC (SET_GCODE_OFFSET au pickup).
+    # Les renseigner ici les appliquerait deux fois.
+    extruder_offset:
+    - 0x0
+    start_gcode: |
+      PRINT_START BED={first_layer_bed_temperature[initial_extruder]} TOOL={initial_extruder} T0={first_layer_temperature[initial_extruder]} LAYERS={total_layer_count} MESH=1
+
+---
+kind: printer
+id: ekozan-printer-jubilee-5t
+inherits:
+- '*JT base*'
+- '*JT geometrie*'
+variants:
+- condition: printer.model == "JUBILEE5T"
+  name: Jubilee Trident - 5 outils
+  id: ekozan-printer-jubilee-5t-v
+  values:
+    extruder_offset:
+    - 0x0
+    - 0x0
+    - 0x0
+    - 0x0
+    - 0x0
+    # Seuls les outils reellement utilises par le G-code sont prechauffes.
+    start_gcode: |
+      PRINT_START BED={first_layer_bed_temperature[initial_extruder]} TOOL={initial_extruder} LAYERS={total_layer_count} MESH=1{if is_extruder_used[0]} T0={first_layer_temperature[0]}{endif}{if is_extruder_used[1]} T1={first_layer_temperature[1]}{endif}{if is_extruder_used[2]} T2={first_layer_temperature[2]}{endif}{if is_extruder_used[3]} T3={first_layer_temperature[3]}{endif}{if is_extruder_used[4]} T4={first_layer_temperature[4]}{endif}

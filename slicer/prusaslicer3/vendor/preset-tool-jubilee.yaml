@@ -1,0 +1,10 @@
+# Surcharges d'impression par outil (nouveau type de profil en 3.0).
+# Vide pour l'instant : les 5 tetes sont identiques. C'est ici qu'on
+# differenciera largeur d'extrusion, vitesses ou retraction par tete.
+kind: tool_print
+id: ekozan-toolprint-jubilee
+variants:
+- condition: printer.base_model == "JUBILEE"
+  name: standard
+  id: ekozan-toolprint-jubilee-v
+  values: {}

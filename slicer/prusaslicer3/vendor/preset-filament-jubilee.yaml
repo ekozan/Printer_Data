@@ -1,0 +1,124 @@
+# Profils filament.
+# Aucun M104/M109 ici : PRINT_START pose les temperatures, KTCC gere ensuite
+# actif / standby par outil.
+# Le pressure advance est applique par SET_TOOL_PRESSURE_ADVANCE, qui resout
+# l'extrudeur Klipper (extruder, extruder1, ...) depuis le numero d'outil KTCC.
+
+kind: filament
+id: '*JT filament commun*'
+values:
+  filament_diameter: 1.75
+  extrusion_multiplier: 1
+  filament_cost: 25
+  filament_spool_weight: 200
+  filament_vendor: Sans marque
+  filament_soluble: 0
+  min_print_speed: 15
+  slowdown_below_layer_time: 8
+  filament_multitool_ramming: 0
+  filament_minimal_purge_on_wipe_tower: 15
+
+---
+kind: filament
+id: ekozan-filament-pla
+name: Generic PLA @JT
+inherits:
+- '*JT filament commun*'
+condition: printer.base_model == "JUBILEE"
+values:
+  filament_type: PLA
+  filament_density: 1.24
+  temperature: 215
+  first_layer_temperature: 220
+  bed_temperature: 60
+  first_layer_bed_temperature: 60
+  fan_always_on: 1
+  min_fan_speed: 100
+  max_fan_speed: 100
+  bridge_fan_speed: 100
+  disable_fan_first_layers: 1
+  full_fan_speed_layer: 4
+  fan_below_layer_time: 100
+  filament_max_volumetric_speed: 15
+  start_filament_gcode: |
+    ; PLA sur T{current_extruder}
+    SET_TOOL_PRESSURE_ADVANCE TOOL={current_extruder} ADVANCE=0.068
+
+---
+kind: filament
+id: ekozan-filament-petg
+name: Generic PETG @JT
+inherits:
+- '*JT filament commun*'
+condition: printer.base_model == "JUBILEE"
+values:
+  filament_type: PETG
+  filament_density: 1.27
+  temperature: 240
+  first_layer_temperature: 245
+  bed_temperature: 80
+  first_layer_bed_temperature: 80
+  fan_always_on: 1
+  min_fan_speed: 40
+  max_fan_speed: 60
+  bridge_fan_speed: 70
+  disable_fan_first_layers: 2
+  full_fan_speed_layer: 5
+  fan_below_layer_time: 20
+  filament_max_volumetric_speed: 12
+  start_filament_gcode: |
+    ; PETG sur T{current_extruder}
+    SET_TOOL_PRESSURE_ADVANCE TOOL={current_extruder} ADVANCE=0.08
+
+---
+kind: filament
+id: ekozan-filament-abs
+name: Generic ABS-ASA @JT
+inherits:
+- '*JT filament commun*'
+condition: printer.base_model == "JUBILEE"
+values:
+  filament_type: ABS
+  filament_density: 1.04
+  temperature: 255
+  first_layer_temperature: 255
+  bed_temperature: 100
+  first_layer_bed_temperature: 100
+  fan_always_on: 0
+  min_fan_speed: 15
+  max_fan_speed: 25
+  bridge_fan_speed: 30
+  disable_fan_first_layers: 3
+  full_fan_speed_layer: 6
+  fan_below_layer_time: 15
+  slowdown_below_layer_time: 15
+  filament_max_volumetric_speed: 14
+  start_filament_gcode: |
+    ; ABS/ASA sur T{current_extruder}
+    SET_TOOL_PRESSURE_ADVANCE TOOL={current_extruder} ADVANCE=0.05
+
+---
+kind: filament
+id: ekozan-filament-tpu
+name: Generic TPU 95A @JT
+inherits:
+- '*JT filament commun*'
+condition: printer.base_model == "JUBILEE"
+values:
+  filament_type: FLEX
+  filament_density: 1.21
+  temperature: 230
+  first_layer_temperature: 230
+  bed_temperature: 50
+  first_layer_bed_temperature: 50
+  fan_always_on: 1
+  min_fan_speed: 60
+  max_fan_speed: 80
+  bridge_fan_speed: 90
+  disable_fan_first_layers: 1
+  filament_max_volumetric_speed: 2.5
+  retract_length: 0.4
+  retract_speed: 25
+  start_filament_gcode: |
+    ; TPU sur T{current_extruder}
+    SET_TOOL_PRESSURE_ADVANCE TOOL={current_extruder} ADVANCE=0.4

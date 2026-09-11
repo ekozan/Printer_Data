@@ -1,0 +1,100 @@
+# Declaration materielle du vendeur pour PrusaSlicer 3.0
+# Schema : specs/presets/vendor-schema.json (depot PrusaSlicer)
+#
+# Un document par bloc, separes par ---
+#   vendor         : identite + declaration des "features"
+#   printer        : un modele d'imprimante (capacites + visuel)
+#   tool           : une tete / un diametre de buse selectionnable
+#   sheet          : une surface d'impression
+#   printer_config : ce que l'utilisateur choisit reellement
+#                    (imprimante + nombre d'outils + outils + plateau)
+
+kind: vendor
+id: Ekozan
+name: Ekozan - Jubilee
+version: 1.0.0
+features:
+  printer:
+    multi_extruder:
+      default: false
+      user_editable: false
+  tool:
+    nozzle_diameter:
+      default: 0.4
+
+---
+# 1 outil : le seul outil monte aujourd'hui ([tool 0] dans tools.cfg)
+kind: printer
+technology: FFF
+id: jubilee1t
+name: Jubilee Trident 1T
+model:
+  base_model: JUBILEE
+  model: JUBILEE1T
+tool_count: 1
+visual:
+  bed_texture: jubilee_bed.png
+  thumbnail: jubilee_thumbnail.png
+
+---
+# 5 outils : prêt pour quand T1..T4 seront montes
+kind: printer
+technology: FFF
+id: jubilee5t
+name: Jubilee Trident 5T
+model:
+  base_model: JUBILEE
+  model: JUBILEE5T
+tool_count: 5
+features:
+  multi_extruder:
+    default: true
+visual:
+  bed_texture: jubilee_bed.png
+  thumbnail: jubilee_thumbnail.png
+
+---
+kind: tool
+technology: FFF
+id: '0.4'
+name: '0.4'
+features:
+  nozzle_diameter:
+    default: 0.4
+
+---
+kind: tool
+technology: FFF
+id: '0.6'
+name: '0.6'
+features:
+  nozzle_diameter:
+    default: 0.6
+
+---
+kind: sheet
+id: pei_textured
+name: PEI texture
+type: pei_textured
+
+---
+kind: printer_config
+id: jubilee-1t
+name: Jubilee Trident - 1 outil
+printer: jubilee1t
+tool_count: 1
+tools:
+- tool: '0.4'
+- tool: '0.6'
+sheet: pei_textured
+
+---
+kind: printer_config
+id: jubilee-5t
+name: Jubilee Trident - 5 outils
+printer: jubilee5t
+tool_count: 5
+tools:
+- tool: '0.4'
+- tool: '0.6'
+sheet: pei_textured
